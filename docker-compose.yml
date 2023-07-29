@@ -1,0 +1,127 @@
+version: "3"
+volumes:
+  mysql_data:
+  redis_data:
+services:
+  # #serviços de produção Rodar chown -R www-data:www-data storage dento do container de producao ao finalizar o desenvolvimento
+  # production_app:
+  #   container_name: production_app
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - .:/var/www/html
+  #     - ./docker/certs:/etc/nginx/ssl
+  #   depends_on:
+  #     - production_mysql
+  #     - production_redis
+  #   environment:
+  #     - APP_ENV=production
+  #     - APP_KEY=base64:RHAoRbXG8t3Ia49QeEcZWnqalnxZPoKon23DR4C4Mm8=
+  #     - DB_CONNECTION=mysql
+  #     - DB_HOST=production_mysql
+  #     - DB_PORT=3306
+  #     - DB_DATABASE=DBPROD01
+  #     - DB_USERNAME=admin
+  #     - DB_PASSWORD=mpUA6hh549jV
+  #     - REDIS_HOST=production_redis
+  #     - REDIS_PASSWORD=null
+  #     - REDIS_PORT=6379
+
+  # production_mysql:
+  #   container_name: production_mysql
+  #   image: mysql:latest
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=46g9N9cGH7pP
+  #     - MYSQL_DATABASE=DBPROD01
+  #     - MYSQL_USER=admin
+  #     - MYSQL_PASSWORD=mpUA6hh549jV
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
+  # production_redis:
+  #   container_name: production_redis
+  #   image: redis:latest
+  #   volumes:
+  #     - redis_data:/data
+
+  # INTUITO DE TESTE
+  development_app:
+    container_name: development_app
+    image: bitnami/laravel:latest
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      - development_mysql
+      - development_redis
+    environment:
+      - APP_ENV=development
+      - APP_KEY=base64:RHAoRbXG8t3Ia49QeEcZWnqalnxZPoKon23DR4C4Mm8=
+      - DB_CONNECTION=mysql
+      - DB_HOST=development_mysql
+      - DB_PORT=3306
+      - DB_DATABASE=DBTEST01
+      - DB_USERNAME=admin
+      - DB_PASSWORD=mpUA6hh549jV
+      - REDIS_HOST=development_redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+
+  development_queue:
+    container_name: development_queue
+    image: bitnami/laravel:latest
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: php artisan queue:listen --tries=3 --timeout=60
+    depends_on:
+      - development_mysql
+      - development_app
+      - development_redis
+    environment:
+      - APP_ENV=development
+      - APP_KEY=base64:RHAoRbXG8t3Ia49QeEcZWnqalnxZPoKon23DR4C4Mm8=
+      - DB_CONNECTION=mysql
+      - DB_HOST=development_mysql
+      - DB_PORT=3306
+      - DB_DATABASE=DBTEST01
+      - DB_USERNAME=admin
+      - DB_PASSWORD=mpUA6hh549jV
+      - REDIS_HOST=development_redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+
+  development_vite:
+    container_name: development_vite
+    image: bitnami/laravel:latest
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: yarn dev --host
+    ports:
+      - 5173:5173
+    depends_on:
+      - development_mysql
+      - development_app
+      - development_queue
+      - development_redis
+    environment:
+      - APP_ENV=development
+
+  development_mysql:
+    container_name: development_mysql
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=46g9N9cGH7pP
+      - MYSQL_DATABASE=DBTEST01
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=mpUA6hh549jV
+
+  development_redis:
+    container_name: development_redis
+    image: redis:latest
