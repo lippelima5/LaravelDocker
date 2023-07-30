@@ -98,7 +98,8 @@ services:
 
   development_vite:
     container_name: development_vite
-    image: bitnami/laravel:latest
+    # image: bitnami/laravel:latest    
+    image: node:lts
     volumes:
       - .:/app
     working_dir: /app
